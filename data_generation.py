@@ -44,20 +44,16 @@ def probabiliter_controlled(G, states):
     '''Returns a dictionary of pandas DataFrames containing probabilities generated from random parameters for each combination of states
     and the respective cumulative distributions.'''
    
-    probs = {} #initiating the dictionary
+    probs = {} #dictionary to hold the dataframes
     
     for node in G.nodes:
         parents = list(G.predecessors(node)) #list of predecessor nodes
-               
-        df = pd.DataFrame(it.product(states[node],*[states[parent] for parent in parents]),
-                          columns=[node]+parents)
-        
         d = len(states[node])
         
         # generate betas that sum to 1, representing the probabilities of states i in the absence of node influences
         betas = np.diff(np.sort(rd.random(d-1)),prepend=0,append=1)
                 
-        nj = sum(1 for dummy in it.product(*[states[parent] for parent in parents]))
+        nj = sum(1 for dummy in it.product(*[states[parent] for parent in parents])) #number of unique combinations of parent states
         r = rd.random(nj)**(1/d)
         alphas=(np.diff(np.sort(rd.random([nj,d-1]),axis=1),axis=1,prepend=0,append=1).T*r).T
         
@@ -65,9 +61,8 @@ def probabiliter_controlled(G, states):
         cumlist=np.cumsum(problist,axis=1)
 
         i=0
-        problist_ = np.zeros(np.size(problist))
-        cumlist_ = np.zeros(np.size(problist))
-
+        problist_, cumlist_ = np.zeros(np.size(problist)), np.zeros(np.size(problist))
+        df = pd.DataFrame(it.product(states[node],*[states[parent] for parent in parents]), columns=[node]+parents)
         for parent_states in it.product(*[states[parent] for parent in parents]): #Parallizable?
 
             where=(df[parents]==parent_states).all(axis=1)
