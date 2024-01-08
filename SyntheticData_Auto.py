@@ -100,12 +100,12 @@ def triangulation2(data, node_list, edge_list, thres):
                     
     return DAG_w2
 
-for n_nodes in [40,60,80,120]:
+for n_nodes in [20,40,60,80,120]:
 
     data=np.zeros([10,30])
 
     for i in range(10):
-        density, orphans = 4, 0.01
+        density, orphans = 8, 0.01
         DAGt = controlled_zeros(n_nodes, density, orphans)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
@@ -288,3 +288,4 @@ for n_nodes in [40,60,80,120]:
     np.savetxt(f,data)
     f.close()
     del data
+    print(n_nodes)
