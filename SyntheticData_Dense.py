@@ -100,7 +100,7 @@ def triangulation2(data, node_list, edge_list, thres):
                     
     return DAG_w2
 
-for n_nodes in [40,60,80,120]:
+for n_nodes in [20,40,60,80,120]:
 
     data=np.zeros([10,30])
     
@@ -292,3 +292,4 @@ for n_nodes in [40,60,80,120]:
     np.savetxt(f,data)
     f.close()
     del data
+    print(n_nodes)
