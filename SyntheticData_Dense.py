@@ -100,14 +100,15 @@ def triangulation2(data, node_list, edge_list, thres):
                     
     return DAG_w2
 
-for n_nodes in [20,40,60,80,120]:
+for n_nodes in [20,40,60,80,100,120]:
 
     data=np.zeros([10,30])
     
     for i in range(10):
-        s = 0.2 #sparseness
+        density = 3 #mean degree
+        s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
-        for k,j in it.product(range(40),repeat=2):
+        for k,j in it.product(range(n_nodes),repeat=2):
             if k>=j: A[k,j]=0
         DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
         del A
@@ -121,6 +122,8 @@ for n_nodes in [20,40,60,80,120]:
         
         data[i,0] = n_nodes
         data[i,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
+        
+        print(i)
     
         #Change data format for PC Algorithm
         a = np.zeros(np.shape(df))
@@ -286,9 +289,8 @@ for n_nodes in [20,40,60,80,120]:
         data[i,27] = FP/(comb(len(df.columns),2).astype(int) - len(DAGt.edges)) #FPR = FP/N
         data[i,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[i,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
-        print(i)
 
-    f = open("synthmeasures_data.txt", "a+")
+    f = open("synthmeasuresDense_data.txt", "a+")
     np.savetxt(f,data)
     f.close()
     del data
