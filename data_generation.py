@@ -60,7 +60,7 @@ def generator(G, states, states_prob, n):
             rng = rd.random(n) #generate n random numbers, used to determine states according probability distributions
             st_counter=np.zeros(n, dtype=int) #array that shall contain the n realizations of the node
             
-            lps = sum([1 for cnt in it.product(*[states[parent] for parent in parents])]) #number of product of parent states
+            #lps = sum([1 for cnt in it.product(*[states[parent] for parent in parents])]) #number of product of parent states
             #Loops over the number of lines of df; each maps to an unique system state=node_state+parent_states
             for i in range(len(df)):
                 
