@@ -23,17 +23,17 @@ def probabiliter_controlled(G, states):
         # generate betas that sum to 1, representing the probabilities of states i in the absence of node influences
         betas = np.diff(np.sort(rd.random(d-1)),prepend=0,append=1)
                 
-        nj = sum(1 for dummy in it.product(*[states[parent] for parent in parents])) #number of unique combinations of parent states
-        r = rd.random(nj)**(1/d)
-        alphas=r[:, np.newaxis]*np.diff(np.sort(rd.random([nj,d-1]),axis=1),axis=1,prepend=0,append=1) #r^T*M
+        lps = sum(1 for dummy in it.product(*[states[parent] for parent in parents])) #number of unique combinations of parent states
+        r = rd.random(lps)**(1/d)
+        alphas=r[:, np.newaxis]*np.diff(np.sort(rd.random([lps,d-1]),axis=1),axis=1,prepend=0,append=1) #r^T*M
         
-        problist = np.array([[betas[i] * (1-r[u]) for i in range(d)] for u in range(nj)])+alphas # P(i|u)
+        problist = np.array([[betas[i] * (1-r[u]) for i in range(d)] for u in range(lps)])+alphas # P(i|u)
         cumlist=np.cumsum(problist,axis=1)
 
-        problist_, cumlist_ = np.zeros(nj*d), np.zeros(nj*d)
+        problist_, cumlist_ = np.zeros(lps*d), np.zeros(lps*d)
         #Loops over the number of products over parent states; if zero it has a single cycle with where selecting all lines (thus all node_states)
-        for i in range(nj):
-            where = [i + nj*j for j in range(d)] # lines in df (thus different node_states) with the same parent_states
+        for i in range(lps):
+            where = [i + lps*j for j in range(d)] # lines in df (thus different node_states) with the same parent_states
             problist_[where] = problist[i]
             cumlist_[where] = cumlist[i]
             
