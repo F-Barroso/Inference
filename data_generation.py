@@ -60,19 +60,21 @@ def generator(G, states, states_prob, n):
             rng = rd.random(n) #generate n random numbers, used to determine states according probability distributions
             st_counter=np.zeros(n, dtype=int) #array that shall contain the n realizations of the node
             
-            #lps = sum([1 for cnt in it.product(*[states[parent] for parent in parents])]) #number of product of parent states
-            #Loops over the number of lines of df; each maps to an unique system state=node_state+parent_states
-            for i in range(len(df)):
+            i=0 #counter of system states/lines of df
+            #Loops over the combinations
+            for sys_state in it.product(states[node],*[states[parent] for parent in parents]):
                 
                 truths = np.ones(n,dtype=bool) #Initialize array of Trues:
+                                
                 #each position of the array shall indicate after the loop if the realizations already generated for the parent states
                 #are compatible with the parent_states in line i of df. If the node is orphan, the array will remain unchanged.
                 for j in range(len(parents)):
-                    truths &= (data[parents[j]] == df.loc[i][parents[j]]) #find which realizations are not compatible with parent_states
-                    
+                    truths &= (data[parents[j]] == sys_state[1+j]) #find which realizations are not compatible with parent_states (already generated)
+                        
                 #Update the st_counter in the positions that are compatible with the already generated parent states.
                 #Note: at the end of current loop, one and only one value will be assigned to each position of st_counter
                 st_counter[truths] += df.loc[i].Cumulative < rng[truths]
+                i+=1
 
             data[node]=st_counter #add an entry to the dictionary with the realizations for the node
             
