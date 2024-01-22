@@ -31,19 +31,20 @@ def probabiliter_controlled(G, states):
         cumlist=np.cumsum(problist,axis=1)
 
         problist_, cumlist_ = np.zeros(lps*d), np.zeros(lps*d)
+        
         #Loops over the number of products over parent states; if zero it has a single cycle with where selecting all lines (thus all node_states)
         for i in range(lps):
             where = [i + lps*j for j in range(d)] # lines in df (thus different node_states) with the same parent_states
             problist_[where] = problist[i]
             cumlist_[where] = cumlist[i]
-            
-        df = pd.DataFrame(it.product(states[node],*[states[parent] for parent in parents]), columns=[node]+parents) #Heavy memory consumption! FIXME!
+
+        df = pd.DataFrame() #each index is mapped to the the iterator it.product(states[node],*[states[parent] for parent in parents])
         df['Probability'] = problist_
         df['Cumulative'] = cumlist_
         probs[node] = df
                 
     return probs
-                             
+    
 ########################################################################
 
 def generator(G, states, states_prob, n):
@@ -69,7 +70,7 @@ def generator(G, states, states_prob, n):
                 #each position of the array shall indicate after the loop if the realizations already generated for the parent states
                 #are compatible with the parent_states in line i of df. If the node is orphan, the array will remain unchanged.
                 for j in range(len(parents)):
-                    truths &= (data[parents[j]] == sys_state[1+j]) #find which realizations are not compatible with parent_states (already generated)
+                    truths &= (data[parents[j]] == sys_state[1+j]) #find which realizations are not compatible with parent_states
                         
                 #Update the st_counter in the positions that are compatible with the already generated parent states.
                 #Note: at the end of current loop, one and only one value will be assigned to each position of st_counter
