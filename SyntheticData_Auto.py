@@ -110,8 +110,7 @@ for n_nodes in [20,40,60]:
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
         states = stater(DAGt, min_states=2, max_states=4)
-        states_prob = probabiliter_controlled(DAGt, states)
-        df = generator(DAGt, states, states_prob, 10000)
+        df = generator(DAGt, states, 1000)
         order = {node:int(node) for node in DAGt.nodes}
         
         data[i,0] = n_nodes
