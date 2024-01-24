@@ -20,9 +20,9 @@ from castle.algorithms import PC
 
 for n_nodes in [20,40,60,80,100,120]:
 
-    data=np.zeros([10,30])
-    
     for i in range(10):
+        data=np.zeros([10,30])
+
         density = 3 #mean degree
         s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
