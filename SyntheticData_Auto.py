@@ -84,7 +84,7 @@ for n_nodes in [20,40,60]:
         data[i,7] = thres
     
         ##Second Step
-        DAG_w2 = triangulation2(a, df.columns, unique_edges[m:], thres)
+        DAG_w2 = triangulation_fisher(a, df.columns, unique_edges[m:], thres)
         
         data[i,8] = (time.process_time_ns() - ti)*1e-9 #time in seconds
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
@@ -118,7 +118,7 @@ for n_nodes in [20,40,60]:
         data[i,13] = thres
     
         ##Second Step
-        DAG_w2 = triangulation2(a, df.columns, unique_edges[m:], thres)
+        DAG_w2 = triangulation_fisher(a, df.columns, unique_edges[m:], thres)
         
         data[i,14] = (time.process_time_ns() - ti)*1e-9 #time in seconds
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
