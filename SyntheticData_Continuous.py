@@ -80,7 +80,7 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time_ns()
     	##Second Step
-        DAG_w2 = triangulation_fisher(a, df.columns, unique_edges[m:], thres)
+        DAG_w2 = triangulation_fisher(X, list(DAGt.nodes), unique_edges[m:], thres)
         data[0,30] = (time.process_time_ns() - ti)*1e-9 #time in seconds
         
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
@@ -116,7 +116,7 @@ for n_nodes in [20,40,60,80,100,120]:
     
         ti = time.process_time_ns()
     	##Second Step
-        DAG_w2 = triangulation_fisher(a, df.columns, unique_edges[m:], thres)
+        DAG_w2 = triangulation_fisher(X, list(DAGt.nodes), unique_edges[m:], thres)
         data[0,31] = (time.process_time_ns() - ti)*1e-9 #time in seconds
         
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
@@ -170,8 +170,8 @@ for n_nodes in [20,40,60,80,100,120]:
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
         FP = len(DAG_w2.edges-DAGt.edges) #False Positives
         TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (comb(len(df.columns),2).astype(int) - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,21] = FP/(comb(len(df.columns),2).astype(int) - len(DAGt.edges)) #FPR = FP/N
+        TN = (comb(n_nodes,2).astype(int) - len(DAGt.edges)) - FP #True Negatives = N - FP
+        data[0,21] = FP/(comb(n_nodes,2).astype(int) - len(DAGt.edges)) #FPR = FP/N
         data[0,22] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,23] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
@@ -211,8 +211,8 @@ for n_nodes in [20,40,60,80,100,120]:
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
         FP = len(DAG_w2.edges-DAGt.edges) #False Positives
         TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (comb(len(df.columns),2).astype(int) - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,27] = FP/(comb(len(df.columns),2).astype(int) - len(DAGt.edges)) #FPR = FP/N
+        TN = (comb(n_nodes,2).astype(int) - len(DAGt.edges)) - FP #True Negatives = N - FP
+        data[0,27] = FP/(comb(n_nodes,2).astype(int) - len(DAGt.edges)) #FPR = FP/N
         data[0,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
