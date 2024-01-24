@@ -6,11 +6,12 @@ import itertools as it
 import knee.rdp as rdp
 import knee.kneedle as kneedle
 from scipy.special import comb
+from scipy.stats import norm
 
 import time
 
 from controlled_zeros import *
-#from data_generation import *
+from data_generation import *
 from triangulation import *
 from weight_computer import *
 
@@ -21,16 +22,15 @@ from castle.algorithms import PC
 n=10000
 for n_nodes in [20,40,60,80,100,120]:
 
-    data=np.zeros([20,30])
+    data=np.zeros([10,30])
     
-    for i in range(20):
+    for i in range(10):
         density = 1 #mean degree
         s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
         for k,j in it.product(range(n_nodes),repeat=2):
             if k>=j: A[k,j]=0
         DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
-        DAGt = nx.relabel_nodes(DAGt,{node:node for node in DAGt.nodes})
 
         X = np.zeros([n,n_nodes])
         X[:,0] = rd.normal(size=n) #noise
@@ -122,9 +122,95 @@ for n_nodes in [20,40,60,80,100,120]:
         data[i,15] = FP/(comb(n_nodes,2).astype(int) - len(DAGt.edges)) #FPR = FP/N
         data[i,16] = FN/len(DAGt.edges) #FNR = FN/P
         data[i,17] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+
+
+        #Create states by quartiles:
+        Y = (X<norm.ppf(1/4)).astype(int)
+        Y += (X<norm.ppf(1/2)).astype(int)
+        Y += (X<norm.ppf(3/4)).astype(int)
+        DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
+        #Put data in pandas dataframe format
+        df = pd.DataFrame(Y,columns=[node for node in DAGt.nodes])
+        del Y
+        states = {node:list(range(4)) for node in DAGt.nodes}
+        order = {node:int(node) for node in DAGt.nodes}
+
+        
+        #Connected with NI
+        ti = time.process_time_ns()
     
-    f = open("synthmeasuresContinuous_data.txt", "a+")
-    np.savetxt(f,data)
-    f.close()
-    del data
+        weight_num_writer(df, states, order)
+        wn_var = np.array(weight_var_importer('weights_num.txt'))
+        wn_val = np.array(weight_val_importer('weights_num.txt'))
+        
+        unique_edges = np.unique(wn_var[:,:2],axis=0)
+        unique_vals = np.zeros(len(unique_edges))
+        for j in range(len(unique_edges)):
+            pair = unique_edges[j]
+            unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
+        unique_vals=np.abs(unique_vals)
+        unique_edges, unique_vals = unique_edges[np.argsort(unique_vals)], np.sort(unique_vals)
+    
+        ##Threshold in first step
+        m=binary_search(list(states), unique_edges)
+        thres = unique_vals[m]
+        data[i,18] = m
+        data[i,19] = thres
+    
+        ##Second Step
+        DAG_w2 = triangulation(df, unique_edges[m:], thres, states)
+    
+        data[i,20] = (time.process_time_ns() - ti)*1e-9 #time in seconds
+        FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
+        FP = len(DAG_w2.edges-DAGt.edges) #False Positives
+        TP = len(DAGt.edges) - FN #True Positives = P - FN
+        TN = (comb(len(df.columns),2).astype(int) - len(DAGt.edges)) - FP #True Negatives = N - FP
+        data[i,21] = FP/(comb(len(df.columns),2).astype(int) - len(DAGt.edges)) #FPR = FP/N
+        data[i,22] = FN/len(DAGt.edges) #FNR = FN/P
+        data[i,23] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+
+        #Knee with NI
+        ti = time.process_time_ns()
+    
+        weight_num_writer(df, states, order)
+        wn_var = np.array(weight_var_importer('weights_num.txt'))
+        wn_val = np.array(weight_val_importer('weights_num.txt'))
+            
+        unique_edges = np.unique(wn_var[:,:2],axis=0)
+        unique_vals = np.zeros(len(unique_edges))
+        for j in range(len(unique_edges)):
+            pair = unique_edges[j]
+            unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
+        unique_vals=np.abs(unique_vals)
+        unique_edges, unique_vals = unique_edges[np.argsort(unique_vals)], np.sort(unique_vals)
+        
+        ##Threshold in first step
+        gcc_nodes=np.zeros(len(unique_edges))
+        for j in range(len(unique_edges)):
+            H = nx.Graph()
+            H.add_edges_from(unique_edges[j:])
+            gcc_nodes[j] = len(sorted(nx.connected_components(H), key=len, reverse=True)[0])
+        del H
+        m = kneedle.auto_knee(np.column_stack((np.arange(len(gcc_nodes)),gcc_nodes)))
+        thres = unique_vals[m]
+        data[i,24] = m
+        data[i,25] = thres
+    
+        ##Second Step
+        DAG_w2 = triangulation(df, unique_edges[m:], thres, states)
+    
+        data[i,26] = (time.process_time_ns() - ti)*1e-9 #time in seconds
+        FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
+        FP = len(DAG_w2.edges-DAGt.edges) #False Positives
+        TP = len(DAGt.edges) - FN #True Positives = P - FN
+        TN = (comb(len(df.columns),2).astype(int) - len(DAGt.edges)) - FP #True Negatives = N - FP
+        data[i,27] = FP/(comb(len(df.columns),2).astype(int) - len(DAGt.edges)) #FPR = FP/N
+        data[i,28] = FN/len(DAGt.edges) #FNR = FN/P
+        data[i,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+    
+    	f = open("synthmeasuresContinuous_data.txt", "a+")
+    	np.savetxt(f,data)
+    	f.close()
+   	del data
+   	
     print(n_nodes)
