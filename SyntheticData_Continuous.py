@@ -11,56 +11,15 @@ import time
 
 from controlled_zeros import *
 #from data_generation import *
+from triangulation import *
 from weight_computer import *
 
 from castle.common import GraphDAG, independence_tests
 from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
-def condition(node_list, arr ,m):
-    H = nx.DiGraph()
-    H.add_nodes_from(node_list)
-    H.add_edges_from(np.unique(arr[m:],axis=1))
-    return nx.is_connected(H.to_undirected())
-
-def binary_search(node_list, arr):
-    '''arr - sorted array'''
-    L=0
-    R=len(arr)-1
-    while L<=R:
-        if L==R:
-            return L
-        
-        m = int((L+R)/2)+1
-        if not condition(node_list, arr, m): #is it not connected?
-            R = m-1
-        else:
-            L = m
-    return "fail"
-
-def triangulation2(data, node_list, edge_list, thres):
-    key = {node_list[i]:i for i in range(len(node_list))}
-    DAG_w2 = nx.DiGraph()
-    DAG_w2.add_nodes_from(node_list)
-    DAG_w2.add_edges_from(edge_list)
-    
-    for b in np.array(DAG_w2.nodes)[np.array(DAG_w2.in_degree)[:,1].astype("int")>1]:
-        parents = np.array(list(DAG_w2.in_edges(b)))[:,0]
-        
-        for a in parents: #a-> b <-u (test a->b; b=node)
-            if (a,b) not in DAG_w2.edges: #was it already removed?
-                continue
-            #Note: it.permutations(parents,2) can't be used in conjuction with the last break since that will cause the cycle to skip triangles for different a's.
-            for c in parents[parents!=a]:
-                #print(b,a,parents[parents!=a])
-                if independence_tests.CITest.fisherz_test(data,key[a],key[b],[key[c]])[2] > thres: #does not survive
-                    DAG_w2.remove_edge(a,b)
-                    break
-                    
-    return DAG_w2
-
 n=10000
-for n_nodes in [20,80,100,120]:
+for n_nodes in [20,40,60,80,100,120]:
 
     data=np.zeros([20,30])
     
