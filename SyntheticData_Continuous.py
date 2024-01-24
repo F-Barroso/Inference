@@ -21,10 +21,10 @@ from castle.algorithms import PC
 
 n=10000
 for n_nodes in [20,40,60,80,100,120]:
-
-    data=np.zeros([10,30])
     
     for i in range(10):
+        data=np.zeros([10,30])
+    
         density = 1 #mean degree
         s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
@@ -207,10 +207,10 @@ for n_nodes in [20,40,60,80,100,120]:
         data[i,27] = FP/(comb(len(df.columns),2).astype(int) - len(DAGt.edges)) #FPR = FP/N
         data[i,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[i,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
-    
-    	f = open("synthmeasuresContinuous_data.txt", "a+")
-    	np.savetxt(f,data)
-    	f.close()
-   	del data
-   	
+        
+        f = open("synthmeasuresContinuous_data.txt", "a+")
+        np.savetxt(f,data)
+        f.close()
+        del data
+        
     print(n_nodes)
