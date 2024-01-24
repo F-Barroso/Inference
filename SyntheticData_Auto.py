@@ -20,9 +20,9 @@ from castle.algorithms import PC
 
 for n_nodes in [20,40,60]:
 
-    data=np.zeros([10,30])
-
     for i in range(10):
+        data=np.zeros([10,30])
+        
         density, orphans = 4, 0.01
         DAGt = controlled_zeros(n_nodes, density, orphans)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
