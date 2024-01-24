@@ -206,8 +206,9 @@ for n_nodes in [20,40,60,80,100,120]:
         data[i,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[i,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
-    f = open("synthmeasuresDense_data.txt", "a+")
-    np.savetxt(f,data)
-    f.close()
-    del data
+        f = open("synthmeasuresDense_data.txt", "a+")
+        np.savetxt(f,data)
+        f.close()
+        del data
+        
     print(n_nodes)
