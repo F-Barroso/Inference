@@ -124,7 +124,6 @@ for n_nodes in [20,40,60,80,100,120]:
         for i in range(1,n_quant):
             Y += (X>norm.ppf(i/n_quant)).astype(int)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
-        df = pd.DataFrame(Y,columns=[node for node in DAGt.nodes]) #TRY TO REMOVE!!!
         #Put data in pandas dataframe format
         states = {node:list(range(n_quant)) for node in DAGt.nodes}
         order = {node:int(node) for node in DAGt.nodes}
@@ -132,7 +131,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Connected with NI
         ti = time.process_time()
     
-        weight_num_writer(df, states, order)
+        weight_num_writer(Y, states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
         
@@ -167,7 +166,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Knee with NI
         ti = time.process_time()
     
-        weight_num_writer(df, states, order)
+        weight_num_writer(Y, states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
             
