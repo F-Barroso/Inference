@@ -1,6 +1,5 @@
 import networkx as nx
 import numpy as np
-import pandas as pd
 import itertools as it
 
 from castle.common import independence_tests
