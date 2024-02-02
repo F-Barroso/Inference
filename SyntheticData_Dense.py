@@ -65,7 +65,7 @@ for n_nodes in [20,40,60,80,100,120]:
     
         #Connected with Fisher
         ti = time.process_time()
-        fish_vals = [independence_tests.CITest.fisherz_test(x,x,y,[])[2] for x,y in it.permutations(range(len(a[0])),2)]
+        fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
         fish_vars = [(x,y) for x,y in it.permutations(list(df.columns),2)]
     
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x],np.array(fish_vals)[x]))(np.argsort(fish_vals))
@@ -94,7 +94,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Knee with Fisher
         ti = time.process_time()
         
-        fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(a[0])),2)]
+        fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
         fish_vars = [(x,y) for x,y in it.permutations(list(df.columns),2)]
 
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
