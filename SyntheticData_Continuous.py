@@ -58,9 +58,8 @@ for n_nodes in [20,40,60,80,100,120]:
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
         fish_vars = [(x,y) for x,y in it.permutations(list(range(n_nodes)),2)]
     
-        unique_edges, unique_vals = np.array(fish_vars)[np.argsort(fish_vals)], np.sort(fish_vals)
-        unique_edges = np.flip(unique_edges)
-        unique_vals = np.flip(unique_vals)
+        unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
+        unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
         ##Threshold in first step
         m = binary_search(list(range(n_nodes)), unique_edges)
@@ -88,9 +87,8 @@ for n_nodes in [20,40,60,80,100,120]:
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
         fish_vars = [(x,y) for x,y in it.permutations(list(range(n_nodes)),2)]
         
-        unique_edges, unique_vals = np.array(fish_vars)[np.argsort(fish_vals)], np.sort(fish_vals)
-        unique_edges = np.flip(unique_edges)
-        unique_vals = np.flip(unique_vals)
+        unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
+        unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
         ##Threshold in first step
         gcc_nodes=np.zeros(len(unique_edges))
