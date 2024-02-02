@@ -1,7 +1,6 @@
 import networkx as nx
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as pl
 import itertools as it
 import knee.rdp as rdp
 import knee.kneedle as kneedle
