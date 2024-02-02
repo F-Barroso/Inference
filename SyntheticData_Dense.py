@@ -40,14 +40,8 @@ for n_nodes in [20,40,60,80,100,120]:
         print(i)
     
         #Change data format for PC Algorithm
-        X = np.zeros([n,n_nodes])
-        k=0
-        for col in df:
-            j=0
-            for st in states[col]:
-                X[:,k][np.where(df[col]==st)]=j
-                j+=1
-            k+=1
+        X = np.array(df)
+        
         true_matrix=nx.adjacency_matrix(DAGt,nodelist=df.columns).toarray()
     
         #PC Algorithm
