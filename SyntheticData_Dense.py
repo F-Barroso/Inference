@@ -1,7 +1,6 @@
 import networkx as nx
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as pl
 import itertools as it
 import knee.rdp as rdp
 import knee.kneedle as kneedle
@@ -17,6 +16,7 @@ from castle.common import GraphDAG, independence_tests
 from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
+n=10000
 for n_nodes in [20,40,60,80,100,120]:
     
     for i in range(10):
@@ -28,13 +28,10 @@ for n_nodes in [20,40,60,80,100,120]:
         for k,j in it.product(range(n_nodes),repeat=2):
             if k>=j: A[k,j]=0
         DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
-        del A
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
         states = stater(DAGt, min_states=2, max_states=4)
-        states_prob = probabiliter_controlled(DAGt, states)
-        df = generator(DAGt, states, states_prob, 100000)
-        del states_prob
+        df = generator(DAGt, states, n)
         order = {node:int(node) for node in DAGt.nodes}
         
         data[0,0] = n_nodes
@@ -43,12 +40,12 @@ for n_nodes in [20,40,60,80,100,120]:
         print(i)
     
         #Change data format for PC Algorithm
-        a = np.zeros(np.shape(df))
+        X = np.zeros([n,n_nodes])
         k=0
         for col in df:
             j=0
             for st in states[col]:
-                a[:,k][np.where(df[col]==st)]=j
+                X[:,k][np.where(df[col]==st)]=j
                 j+=1
             k+=1
         true_matrix=nx.adjacency_matrix(DAGt,nodelist=df.columns).toarray()
@@ -56,7 +53,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #PC Algorithm
         ti = time.process_time()
         pc = PC(alpha=0.05)
-        pc.learn(a)
+        pc.learn(X)
         data[0,2] = time.process_time() - ti #time in seconds
         FN = int(np.sum((true_matrix-pc.causal_matrix)>0)) #False Negatives
         FP = int(np.sum((true_matrix-pc.causal_matrix)<0)) #False Positives
@@ -75,14 +72,7 @@ for n_nodes in [20,40,60,80,100,120]:
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
         ##Threshold in first step
-        for j in np.unique(unique_vals,return_index=True)[1]:
-            H = nx.Graph()
-            H.add_nodes_from(df.columns)
-            H.add_edges_from(unique_edges[j:])
-            if nx.is_connected(H):
-                m = j
-                break
-        del H
+        m = binary_search(list(range(n_nodes)), unique_edges)
         thres = unique_vals[m]
         data[0,6] = m
         data[0,7] = thres
@@ -90,9 +80,9 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation2(a, df.columns, unique_edges[m:], thres)
-        
+        DAG_w2 = triangulation_fisher(X, list(DAGt.nodes), unique_edges[m:], thres)
         data[0,30] = time.process_time() - ti #time in seconds
+        
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
         FP = len(DAG_w2.edges-DAGt.edges) #False Positives
         TP = len(DAGt.edges) - FN #True Positives = P - FN
@@ -125,9 +115,9 @@ for n_nodes in [20,40,60,80,100,120]:
     
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation2(a, df.columns, unique_edges[m:], thres)
-        
+        DAG_w2 = triangulation_fisher(X, list(DAGt.nodes), unique_edges[m:], thres)
         data[0,31] = time.process_time() - ti #time in seconds
+        
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
         FP = len(DAG_w2.edges-DAGt.edges) #False Positives
         TP = len(DAGt.edges) - FN #True Positives = P - FN
@@ -139,7 +129,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Connected with NI
         ti = time.process_time()
     
-        weight_num_writer(Y, states, order)
+        weight_num_writer(np.array(df), states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
         
@@ -161,9 +151,9 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time()
         ##Second Step
-        DAG_w2 = triangulation(df, unique_edges[m:], thres, states)
-        
+        DAG_w2 = triangulation(np.array(df), list(states), unique_edges[m:], thres, states)
         data[0,32] = time.process_time() - ti #time in seconds
+        
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
         FP = len(DAG_w2.edges-DAGt.edges) #False Positives
         TP = len(DAGt.edges) - FN #True Positives = P - FN
@@ -175,7 +165,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Knee with NI
         ti = time.process_time()
     
-        weight_num_writer(Y, states, order)
+        weight_num_writer(np.array(df), states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
             
@@ -203,7 +193,7 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation(df, unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(np.array(df), list(states), unique_edges[m:], thres, states)
         data[0,33] = time.process_time() - ti #time in seconds
 
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
