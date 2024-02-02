@@ -45,10 +45,10 @@ def triangulation(data, node_list, edge_list, thres, states):
                     survives=False
                     
                     for st_varB,st_varA,st_varC in it.product(*[states[b],states[a],states[c]]):
-                        PC = (data[key[c]]==st_varC).sum()
-                        PAC= ((data[key[a]]==st_varA)&(data[key[c]]==st_varC)).sum()
-                        PBC= ((data[key[b]]==st_varB)&(data[key[c]]==st_varC)).sum()
-                        PABC= ((data[key[b]]==st_varB)&(data[key[a]]==st_varA)&(data[key[c]]==st_varC)).sum()
+                        PC = (data[:,key[c]]==st_varC).sum()
+                        PAC= ((data[:,key[a]]==st_varA)&(data[:,key[c]]==st_varC)).sum()
+                        PBC= ((data[:,key[b]]==st_varB)&(data[:,key[c]]==st_varC)).sum()
+                        PABC= ((data[:,key[b]]==st_varB)&(data[:,key[a]]==st_varA)&(data[:,key[c]]==st_varC)).sum()
                         if PAC!=0 and PAC!=PC: #conditioned to c
                             if np.abs(PABC*PC-PAC*PBC)/(PAC*(PC-PAC)) > thres:
                                 survives=True
