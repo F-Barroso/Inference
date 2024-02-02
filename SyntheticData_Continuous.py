@@ -145,7 +145,7 @@ for n_nodes in [20,40,60,80,100,120]:
         unique_edges, unique_vals = unique_edges[np.argsort(unique_vals)], np.sort(unique_vals)
     
         ##Threshold in first step
-        m=binary_search(list(states), unique_edges)
+        m=binary_search(states.keys(), unique_edges)
         thres = unique_vals[m]
         data[0,18] = m
         data[0,19] = thres
@@ -153,7 +153,7 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time()
         ##Second Step
-        DAG_w2 = triangulation(Y, list(states), unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(Y, states.keys(), unique_edges[m:], thres, states)
         data[0,32] = time.process_time() - ti #time in seconds
         
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
@@ -194,7 +194,7 @@ for n_nodes in [20,40,60,80,100,120]:
     
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation(Y, list(states), unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(Y, states.keys(), unique_edges[m:], thres, states)
         data[0,33] = time.process_time() - ti #time in seconds
     
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
