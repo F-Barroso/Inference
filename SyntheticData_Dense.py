@@ -31,8 +31,7 @@ for n_nodes in [20,40,60,80,100,120]:
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
         states = stater(DAGt, min_states=2, max_states=4)
-        df = generator(DAGt, states, n) #CHANGE THIS!! This is only kept to mantain the order, it should be easily changed now. Exterminate all PANDAS!!!
-        X = np.array(df)
+        X = generator(DAGt, states, n)
         order = {node:int(node) for node in DAGt.nodes}
         
         data[0,0] = n_nodes
@@ -40,7 +39,7 @@ for n_nodes in [20,40,60,80,100,120]:
         
         print(i)
             
-        true_matrix=nx.adjacency_matrix(DAGt,nodelist=df.columns).toarray()
+        true_matrix=nx.adjacency_matrix(DAGt,nodelist=list(states)).toarray()
     
         #PC Algorithm
         ti = time.process_time()
@@ -58,7 +57,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Connected with Fisher
         ti = time.process_time()
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
-        fish_vars = [(x,y) for x,y in it.permutations(list(df.columns),2)]
+        fish_vars = [(x,y) for x,y in it.permutations(list(states),2)]
     
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x],np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
@@ -87,7 +86,7 @@ for n_nodes in [20,40,60,80,100,120]:
         ti = time.process_time()
         
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
-        fish_vars = [(x,y) for x,y in it.permutations(list(df.columns),2)]
+        fish_vars = [(x,y) for x,y in it.permutations(list(states),2)]
 
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
