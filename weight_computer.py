@@ -1,4 +1,3 @@
-import pandas as pd
 import itertools as it
 import numpy as np
 
@@ -18,7 +17,10 @@ def weight_num_writer(data, states, order,filename='weights_num'):
                 PB = (data[:,key[var2]]==st_var2).sum()/dsize
                 PAB= ((data[:,key[var1]]==st_var1)&(data[:,key[var2]]==st_var2)).sum()/dsize
                 file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )          
-        
+
+###########
+import pandas as pd
+
 def weight_theo_writer(G, states, states_prob):
     '''Computes theoretical weights and writes them in a txt file.'''
     probs = pd.concat(states_prob.values(),ignore_index=True).drop('Cumulative',axis=1)
