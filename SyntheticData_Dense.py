@@ -31,17 +31,15 @@ for n_nodes in [20,40,60,80,100,120]:
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
         states = stater(DAGt, min_states=2, max_states=4)
-        df = generator(DAGt, states, n)
+        df = generator(DAGt, states, n) #CHANGE THIS!! This is only kept to mantain the order, it should be easily changed now. Exterminate all PANDAS!!!
+        X = np.array(df)
         order = {node:int(node) for node in DAGt.nodes}
         
         data[0,0] = n_nodes
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
         
         print(i)
-    
-        #Change data format for PC Algorithm
-        X = np.array(df)
-        
+            
         true_matrix=nx.adjacency_matrix(DAGt,nodelist=df.columns).toarray()
     
         #PC Algorithm
@@ -123,7 +121,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Connected with NI
         ti = time.process_time()
     
-        weight_num_writer(np.array(df), states, order)
+        weight_num_writer(X, states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
         
@@ -145,7 +143,7 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time()
         ##Second Step
-        DAG_w2 = triangulation(np.array(df), list(states), unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(X, list(states), unique_edges[m:], thres, states)
         data[0,32] = time.process_time() - ti #time in seconds
         
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
@@ -159,7 +157,7 @@ for n_nodes in [20,40,60,80,100,120]:
         #Knee with NI
         ti = time.process_time()
     
-        weight_num_writer(np.array(df), states, order)
+        weight_num_writer(X, states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
             
@@ -187,7 +185,7 @@ for n_nodes in [20,40,60,80,100,120]:
         
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation(np.array(df), list(states), unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(X, list(states), unique_edges[m:], thres, states)
         data[0,33] = time.process_time() - ti #time in seconds
 
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
