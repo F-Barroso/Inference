@@ -11,8 +11,9 @@ def stater(G, min_states=2, max_states=4):
 
 def generator(G, states, n):
     '''Generates n lines of data consistent with a given DAG, node states and their probabilities.'''
-    data = {} #initialize a dictionary
-    
+    key = {list(states)[i]:i for i in range(len(states))} #key used to mantain the order of the array
+
+    data = np.zeros([n,len(states)])
     #These two loops are computationally equivalent to a single loop over topologically ordered nodes
     for gen in nx.topological_generations(G): #loop over DAG generations
         for node in gen: #loop over the nodes in the generation
@@ -44,13 +45,13 @@ def generator(G, states, n):
                 #each position of the array shall indicate after the loop if the realizations already generated for the parent states
                 #are compatible with the parent_states in line i of probs. If the node is orphan, the array will remain unchanged.
                 for j in range(len(parents)):
-                    truths &= (data[parents[j]] == sys_state[1+j]) #find which realizations are not compatible with parent_states
+                    truths &= (data[:,key[parents[j]]] == sys_state[1+j]) #find which realizations are not compatible with parent_states
                         
                 #Update the st_counter in the positions that are compatible with the already generated parent states.
                 #Note: at the end of current loop, one and only one value will be assigned to each position of st_counter
                 st_counter[truths] += cumlist[i] < rng[truths]
                 i+=1
 
-            data[node]=st_counter #add an entry to the dictionary with the realizations for the node
+            data[:,key[node]]=st_counter #add an entry to the dictionary with the realizations for the node
             
-    return pd.DataFrame(data)
+    return data
