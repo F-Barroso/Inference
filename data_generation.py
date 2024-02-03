@@ -13,7 +13,7 @@ def generator(G, states, n):
 
     data = np.zeros([n,len(states)])
     #These two loops are computationally equivalent to a single loop over topologically ordered nodes
-    for gen in .topological_generations(G): #loop over DAG generations
+    for gen in nx.topological_generations(G): #loop over DAG generations
         for node in gen: #loop over the nodes in the generation
             
             parents = list(G.predecessors(node))
