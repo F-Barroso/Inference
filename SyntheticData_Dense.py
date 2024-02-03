@@ -24,7 +24,7 @@ for n_nodes in [20,40,60,80,100,120]:
         density = 1 #mean degree
         s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
-        for k,j in it.product(range(n_nodes),repeat=2):
+        for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
             if k>=j: A[k,j]=0
         DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
@@ -62,7 +62,7 @@ for n_nodes in [20,40,60,80,100,120]:
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
         ##Threshold in first step
-        m = binary_search(list(range(n_nodes)), unique_edges)
+        m = binary_search(list(states), unique_edges)
         thres = unique_vals[m]
         data[0,6] = m
         data[0,7] = thres
