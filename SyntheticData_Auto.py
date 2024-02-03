@@ -58,7 +58,7 @@ for n_nodes in [20,40,60,80,100,120]:
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
         
         ##Threshold in first step
-        m = binary_search(list(range(n_nodes)), unique_edges)
+        m = binary_search(list(states), unique_edges)
         thres = unique_vals[m]
         data[0,6] = m
         data[0,7] = thres
@@ -129,7 +129,7 @@ for n_nodes in [20,40,60,80,100,120]:
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
         
         ##Threshold in first step
-        m=binary_search(list(states), unique_edges)
+        m = binary_search(list(states), unique_edges)
         thres = unique_vals[m]
         data[0,18] = m
         data[0,20] = time.process_time() - ti #time in seconds
