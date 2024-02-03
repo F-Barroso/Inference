@@ -1,8 +1,6 @@
-import networkx as nx
 import numpy as np
 rd = np.random
 import itertools as it
-import pandas as pd
 
 def stater(G, min_states=2, max_states=4):
     '''Returns a dictionary of random states'''
@@ -15,7 +13,7 @@ def generator(G, states, n):
 
     data = np.zeros([n,len(states)])
     #These two loops are computationally equivalent to a single loop over topologically ordered nodes
-    for gen in nx.topological_generations(G): #loop over DAG generations
+    for gen in .topological_generations(G): #loop over DAG generations
         for node in gen: #loop over the nodes in the generation
             
             parents = list(G.predecessors(node))
