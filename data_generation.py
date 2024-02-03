@@ -1,3 +1,4 @@
+import networkx as nx
 import numpy as np
 rd = np.random
 import itertools as it
