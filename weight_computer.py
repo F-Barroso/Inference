@@ -18,7 +18,21 @@ def weight_num_writer(data, states, order,filename='weights_num'):
                 PAB= ((data[:,key[var1]]==st_var1)&(data[:,key[var2]]==st_var2)).sum()/dsize
                 file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )          
 
-###########
+def weight_var_importer(file_name):
+    '''Imports weight's var from txt file.'''
+    
+    file = open(file_name, 'r')
+    return [[e for e in line.split(":")[0].split(";")] for line in file.readlines()]
+
+
+def weight_val_importer(file_name):
+    '''Imports weight's val from txt file.'''
+    
+    file = open(file_name, 'r')
+    return [float(line.split(":")[1]) for line in file.readlines()]
+
+
+################################## LEGACY CODE ##################################
 import pandas as pd
 
 def weight_theo_writer(G, states, states_prob):
@@ -73,51 +87,3 @@ def pmi_num_writer(df, states):
 
                 else:
                     file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str(np.log(PAB/(PA*PB)))+"\n" )
-
-                    
-##################################
-
-def weight_var_importer(file_name):
-    '''Imports weight's var from txt file.'''
-    
-    file = open(file_name, 'r')
-    return [[e for e in line.split(":")[0].split(";")] for line in file.readlines()]
-
-
-def weight_val_importer(file_name):
-    '''Imports weight's val from txt file.'''
-    
-    file = open(file_name, 'r')
-    return [float(line.split(":")[1]) for line in file.readlines()]
-
-##################################
-
-#NOTE: This function scales with exponentially. If all N nodes have 2 states, the function runs over 2^N iterations.
-def markover(G, states, probs, node_tips):
-    '''Computes theoretical weights between two node states
-    G - nx.Digraph,
-    states - dictionary with the possible states for each node
-    probs - pandas dataframe,
-    node_tips - [[start_node,start_node_state], [end_node,end_node_state]]
-    '''
-    up1,dw1,up2=0,0,0
-
-    for x in it.product(*[states[i] for i in sorted(states)]):
-        trues = x[node_tips[0][0]] == node_tips[0][1], x[node_tips[1][0]] == node_tips[1][1]
-        
-        if trues[0]|trues[1]:
-            val = np.prod(probs.loc[((probs[sorted(G.nodes())]==x)|(probs[sorted(G.nodes())].isna())).all(axis=1)].Probability)
-        
-            if trues[0]&trues[1]: #P(A,B)
-                up1+=val
-                dw1+=val
-                up2+=val
-                continue
-                
-            if trues[0]: #P(B)
-                dw1+=val
-                
-            if trues[1]: #P(A)
-                up2+=val
-                
-    return up1/dw1 - (up2-up1)/(1-dw1) #P(A|B) - P(A|~B)
