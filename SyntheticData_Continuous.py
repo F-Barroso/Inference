@@ -25,7 +25,7 @@ for n_nodes in [20,40,60,80,100,120]:
         density = 1 #mean degree
         s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
-        for k,j in it.product(range(n_nodes),repeat=2):
+        for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
             if k>=j: A[k,j]=0
         DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
 
@@ -36,6 +36,8 @@ for n_nodes in [20,40,60,80,100,120]:
         
         data[0,0] = n_nodes
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
+
+        node_list = range(n_nodes)
         
         print(i)
         
@@ -55,13 +57,13 @@ for n_nodes in [20,40,60,80,100,120]:
         #Connected with Fisher
         ti = time.process_time()
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
-        fish_vars = [(x,y) for x,y in it.permutations(list(range(n_nodes)),2)]
+        fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
     
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
         ##Threshold in first step
-        m = binary_search(list(range(n_nodes)), unique_edges)
+        m = binary_search(node_list, unique_edges)
         thres = unique_vals[m]
         data[0,6] = m
         data[0,7] = thres
@@ -84,7 +86,7 @@ for n_nodes in [20,40,60,80,100,120]:
         ti = time.process_time()
         
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
-        fish_vars = [(x,y) for x,y in it.permutations(list(range(n_nodes)),2)]
+        fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
         
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
