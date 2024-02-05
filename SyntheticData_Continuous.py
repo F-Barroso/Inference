@@ -118,7 +118,7 @@ for n_nodes in [20,40,60,80,100,120]:
         data[0,17] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
         #Create states by quantiles:
-        n_quant = 8
+        n_quant = 4
         Y=np.zeros(X.shape)
         for i in range(1,n_quant):
             Y += (X>norm.ppf(i/n_quant)).astype(int)
