@@ -21,7 +21,7 @@ for n_nodes in [20,40,60,80,100,120]:
     for i in range(10):
         data = np.zeros([1,34])
     	
-        density = 1 #mean degree
+        density = 5 #mean degree
         s = 2*density/(n_nodes-1) #sparseness
         A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
         for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
