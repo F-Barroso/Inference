@@ -16,12 +16,12 @@ from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
 n=10000
-for n_nodes in [20,40,60,80,100,120]:
+for n_nodes in [20,40,60,80,100,120,200]:
 
-    for i in range(10):
+    for i in range(50):
         data = np.zeros([1,34])
         
-        density, orphans = 2, 0.01
+        density, orphans = 10, 0.01
         DAGt = controlled_zeros(n_nodes, density, orphans)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
