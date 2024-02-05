@@ -16,9 +16,9 @@ from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
 n=10000
-for n_nodes in [20,40,60,80,100,120]:
+for n_nodes in [20,40,60,80,100,120,200]:
     
-    for i in range(10):
+    for i in range(50):
         data = np.zeros([1,34])
     	
         density = 5 #mean degree
