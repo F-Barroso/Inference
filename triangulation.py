@@ -5,10 +5,10 @@ import itertools as it
 from castle.common import independence_tests
 
 def condition(node_list, arr ,m):
-    H = nx.DiGraph()
+    H = nx.Graph()
     H.add_nodes_from(node_list)
-    H.add_edges_from(np.unique(arr[m:],axis=1))
-    return nx.is_connected(H.to_undirected())
+    H.add_edges_from(arr[m:])
+    return nx.is_connected(H)
 
 def binary_search(node_list, arr):
     '''arr - sorted array'''
