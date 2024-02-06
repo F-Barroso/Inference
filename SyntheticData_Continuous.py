@@ -96,7 +96,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         for j in range(len(unique_edges)):
             H = nx.Graph()
             H.add_edges_from(unique_edges[j:])
-            gcc_nodes[j] = len(sorted(nx.connected_components(H), key=len, reverse=True)[0])
+            gcc_nodes[j] = len(max(nx.connected_components(H),key=len))
         del H
         m = kneedle.auto_knee(np.column_stack((np.arange(len(gcc_nodes)),gcc_nodes)))
         thres = unique_vals[m]
@@ -182,7 +182,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         for j in range(len(unique_edges)):
             H = nx.Graph()
             H.add_edges_from(unique_edges[j:])
-            gcc_nodes[j] = len(sorted(nx.connected_components(H), key=len, reverse=True)[0])
+            gcc_nodes[j] = len(max(nx.connected_components(H),key=len))
         del H
         m = kneedle.auto_knee(np.column_stack((np.arange(len(gcc_nodes)),gcc_nodes)))
         thres = unique_vals[m]
