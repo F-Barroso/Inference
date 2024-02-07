@@ -7,9 +7,9 @@ from scipy.stats import norm
 
 import time
 
-from controlled_zeros import *
+#from controlled_zeros import *
 from data_generation import *
-from triangulation import *
+from thresholding import *
 from weight_computer import *
 
 from castle.common import GraphDAG, independence_tests
