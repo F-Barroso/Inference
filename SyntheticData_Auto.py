@@ -16,13 +16,14 @@ from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
 n=10000
+density = {20:4.9, 40:4.1, 60:3.8, 80:3.7, 100:3.6, 120:3.5, 200:3.4, 300:3.3} #chosen to yield a real mean degree close to 3
 for n_nodes in [20,40,60,80,100,120,200]:
 
     for i in range(50):
         data = np.zeros([1,34])
         
-        density, orphans = 10, 0.01
-        DAGt = controlled_zeros(n_nodes, density, orphans)
+        orphans = 0.01
+        DAGt = controlled_zeros(n_nodes, density[n_nodes], orphans)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
         
         states = stater(DAGt, min_states=2, max_states=4)
