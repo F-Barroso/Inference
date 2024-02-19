@@ -140,7 +140,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
         unique_vals=np.abs(unique_vals)
-        unique_edges, unique_vals = unique_edges[np.argsort(unique_vals)], np.sort(unique_vals)
+        
+        unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
     
         ##Threshold in first step
         m=binary_search(list(states), unique_edges)
@@ -175,7 +176,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
         unique_vals=np.abs(unique_vals)
-        unique_edges, unique_vals = unique_edges[np.argsort(unique_vals)], np.sort(unique_vals)
+        
+        unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
         
         ##Threshold in first step
         gcc_nodes=np.zeros(len(unique_edges))
