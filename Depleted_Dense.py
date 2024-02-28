@@ -15,33 +15,34 @@ from castle.common import GraphDAG, independence_tests
 from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
-n_nodes=80
+n_nodes=60
 for turn in range(5):
+    n = 100000
     
-    for i in range(4):
-        n=100000
+    density = 3 #mean degree
+    s = 2*density/(n_nodes-1) #sparseness
+    A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
+    for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
+        if k>=j: A[k,j]=0
+    DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
+    DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
+    
+    states = stater(DAGt, min_states=2, max_states=4)
+    X = generator(DAGt, states, n)
+    order = {node:int(node) for node in DAGt.nodes}
 
+    true_matrix=nx.adjacency_matrix(DAGt,nodelist=list(states)).toarray()
+
+    for i in range(4):
         data = np.zeros([1,34])
-    	
-        density = 5 #mean degree
-        s = 2*density/(n_nodes-1) #sparseness
-        A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
-        for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
-            if k>=j: A[k,j]=0
-        DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
-        DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
-        
-        states = stater(DAGt, min_states=2, max_states=4)
-        X = generator(DAGt, states, n)
-        order = {node:int(node) for node in DAGt.nodes}
-        
+
+        n_lines = ( 10000//(10**i) )
         data[0,0] = n_lines
+        X = X[:n_lines]
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
         
         print(i)
-            
-        true_matrix=nx.adjacency_matrix(DAGt,nodelist=list(states)).toarray()
-    
+                
         #PC Algorithm
         ti = time.process_time()
         pc = PC(alpha=0.05)
@@ -196,7 +197,7 @@ for turn in range(5):
         data[0,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
-        f = open("synthmeasuresDense_data.txt", "a+")
+        f = open("DepletedDense_data.txt", "a+")
         np.savetxt(f,data)
         f.close()
         del data
