@@ -133,6 +133,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         m = binary_search(list(states), unique_edges)
         thres = unique_vals[m]
         data[0,18] = m
+        data[0,19] = thres
         data[0,20] = time.process_time() - ti #time in seconds
         
         ti = time.process_time()
