@@ -16,20 +16,17 @@ from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
 n_nodes=60
+density = {20:4.9, 40:4.1, 60:3.8, 80:3.7, 100:3.6, 120:3.5, 200:3.4, 300:3.3} #chosen to yield a real mean degree close to 3
 for turn in range(500):
     
-    density = 3 #mean degree
-    s = 2*density/(n_nodes-1) #sparseness
-    A = rd.binomial(1,s,size=(n_nodes,n_nodes)) #Adjency matrix
-    for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
-        if k>=j: A[k,j]=0
-    DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
+    orphans = 0.01
+    DAGt = controlled_zeros(n_nodes, density[n_nodes], orphans)
     DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
     
     states = stater(DAGt, min_states=2, max_states=4)
     X_ = generator(DAGt, states, 100000)
     order = {node:int(node) for node in DAGt.nodes}
-
+    
     true_matrix=nx.adjacency_matrix(DAGt,nodelist=list(states)).toarray()
 
     for n_lines in [1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3, 5e2, 2e2, 1e2]:
@@ -40,8 +37,8 @@ for turn in range(500):
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
         
         print(n_lines)
-        
-        '''        
+      
+        '''          
         #PC Algorithm
         ti = time.process_time()
         pc = PC(alpha=0.05)
@@ -55,7 +52,7 @@ for turn in range(500):
         data[0,4] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,5] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
     	#'''
-    
+    	
         #Connected with Fisher
         ti = time.process_time()
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
@@ -197,7 +194,7 @@ for turn in range(500):
         data[0,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
-        f = open("DepletedDense_data.txt", "a+")
+        f = open("DepletedAuto_data.txt", "a+")
         np.savetxt(f,data)
         f.close()
         del data

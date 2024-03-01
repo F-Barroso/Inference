@@ -15,8 +15,9 @@ from castle.common import GraphDAG, independence_tests
 from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
+n=10000
 n_nodes=60
-for turn in range(500):
+for turn in range(5):
     
     density = 3 #mean degree
     s = 2*density/(n_nodes-1) #sparseness
@@ -26,20 +27,22 @@ for turn in range(500):
     DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
     DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
     
-    states = stater(DAGt, min_states=2, max_states=4)
-    X_ = generator(DAGt, states, 100000)
-    order = {node:int(node) for node in DAGt.nodes}
+    X = np.zeros([n,n_nodes])
+    X[:,0] = rd.normal(size=n) #noise
+    for j in range(1,n_nodes):
+        X[:,j] = np.sum(A[:j,j]*X[:,:j],axis=1) + rd.normal(size=n) #connections + noise
+        
+    node_list = range(n_nodes)
 
-    true_matrix=nx.adjacency_matrix(DAGt,nodelist=list(states)).toarray()
-
-    for n_lines in [1e5, 5e4, 2e4, 1e4, 5e3, 2e3, 1e3, 5e2, 2e2, 1e2]:
+    for i in range(3):
         data = np.zeros([1,34])
 
+        n_lines = ( n//(10**i) )
         data[0,0] = n_lines
-        X = np.copy(X_[:int(n_lines)])
+        X = X[:n_lines]
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
         
-        print(n_lines)
+        print(i)
         
         '''        
         #PC Algorithm
@@ -59,13 +62,13 @@ for turn in range(500):
         #Connected with Fisher
         ti = time.process_time()
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
-        fish_vars = [(x,y) for x,y in it.permutations(list(states),2)]
+        fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
     
-        unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x],np.array(fish_vals)[x]))(np.argsort(fish_vals))
+        unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
         ##Threshold in first step
-        m = binary_search(list(states), unique_edges)
+        m = binary_search(node_list, unique_edges)
         thres = unique_vals[m]
         data[0,6] = m
         data[0,7] = thres
@@ -88,8 +91,8 @@ for turn in range(500):
         ti = time.process_time()
         
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
-        fish_vars = [(x,y) for x,y in it.permutations(list(states),2)]
-
+        fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
+        
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges), np.flip(unique_vals)
     
@@ -118,6 +121,16 @@ for turn in range(500):
         data[0,15] = FP/(n_nodes*n_nodes - len(DAGt.edges)) #FPR = FP/N
         data[0,16] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,17] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+        
+        #Create states by quantiles:
+        n_quant = 4
+        Y=np.zeros(X.shape)
+        for i in range(1,n_quant):
+            Y += (X>norm.ppf(i/n_quant)).astype(int)
+        DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
+        #Put data in pandas dataframe format
+        states = {node:list(range(n_quant)) for node in DAGt.nodes}
+        order = {node:int(node) for node in DAGt.nodes}
     
         #Connected with NI
         ti = time.process_time()
@@ -132,7 +145,6 @@ for turn in range(500):
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
         unique_vals=np.abs(unique_vals)
-
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
             
         ##Threshold in first step
@@ -168,7 +180,6 @@ for turn in range(500):
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
         unique_vals=np.abs(unique_vals)
-        
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
         
         ##Threshold in first step
@@ -197,7 +208,7 @@ for turn in range(500):
         data[0,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
-        f = open("DepletedDense_data.txt", "a+")
+        f = open("DepletedContinuous_data.txt", "a+")
         np.savetxt(f,data)
         f.close()
         del data
