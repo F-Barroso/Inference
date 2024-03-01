@@ -45,6 +45,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         pc = PC(alpha=0.05)
         pc.learn(X)
         data[0,2] = time.process_time() - ti #time in seconds
+
         FN = int(np.sum((true_matrix-pc.causal_matrix)>0)) #False Negatives
         FP = int(np.sum((true_matrix-pc.causal_matrix)<0)) #False Positives
         TP = len(DAGt.edges) - FN #True Positives = P - FN
@@ -83,7 +84,6 @@ for n_nodes in [20,40,60,80,100,120,200]:
         
         #Knee with Fisher
         ti = time.process_time()
-        
         fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(range(len(X[0])),2)]
         fish_vars = [(x,y) for x,y in it.permutations(list(states),2)]
 
@@ -118,7 +118,6 @@ for n_nodes in [20,40,60,80,100,120,200]:
     
         #Connected with NI
         ti = time.process_time()
-    
         weight_num_writer(X, states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
@@ -128,8 +127,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
         for j in range(len(unique_edges)):
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
+            
         unique_vals=np.abs(unique_vals)
-
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
             
         ##Threshold in first step
@@ -154,7 +153,6 @@ for n_nodes in [20,40,60,80,100,120,200]:
     
         #Knee with NI
         ti = time.process_time()
-    
         weight_num_writer(X, states, order)
         wn_var = np.array(weight_var_importer('weights_num.txt'))
         wn_val = np.array(weight_val_importer('weights_num.txt'))
@@ -164,8 +162,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
         for j in range(len(unique_edges)):
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
+            
         unique_vals=np.abs(unique_vals)
-        
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
         
         ##Threshold in first step
