@@ -43,7 +43,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
             if k>=j: A[k,j]=0
         DAGt = nx.convert_matrix.from_numpy_array(A,create_using=nx.DiGraph)
         DAGt = nx.relabel_nodes(DAGt,{node:str(node) for node in DAGt.nodes})
-        Gt = nx.to_undirect(DAGt)
+        Gt = nx.to_undirected(DAGt)
         
         states = stater(DAGt, min_states=2, max_states=4)
         X = generator(DAGt, states, n)
@@ -99,7 +99,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         data[0,11] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
         #Skeleton?
-        G_w2 = nx.to_undirect(DAG_w2)
+        G_w2 = nx.to_undirected(DAG_w2)
         FN = len(Gt.edges-G_w2.edges) #False Negatives
         FP = len(G_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
@@ -142,7 +142,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         data[0,16] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,17] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
-        G_w2 = nx.to_undirect(DAG_w2)
+        G_w2 = nx.to_undirected(DAG_w2)
         FN = len(Gt.edges-G_w2.edges) #False Negatives
         FP = len(G_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
@@ -186,7 +186,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         data[0,22] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,23] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
-        G_w2 = nx.to_undirect(DAG_w2)
+        G_w2 = nx.to_undirected(DAG_w2)
         FN = len(Gt.edges-G_w2.edges) #False Negatives
         FP = len(G_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
@@ -236,7 +236,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         data[0,28] = FN/len(DAGt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
-        G_w2 = nx.to_undirect(DAG_w2)
+        G_w2 = nx.to_undirected(DAG_w2)
         FN = len(Gt.edges-G_w2.edges) #False Negatives
         FP = len(G_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
