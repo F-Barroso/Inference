@@ -15,21 +15,6 @@ from castle.common import GraphDAG, independence_tests
 from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
-def weight_num_writer(data, states,filename='weights_num'):
-    '''Computes numerical weights and writes them in a txt file.'''
-    key = {list(states)[i]:i for i in range(len(states))}
-
-    file = open(filename+'.txt', 'w')
-    dsize = len(data)
-    for (var1,var2) in it.permutations(states.keys(),2):
-        for (st_var1,st_var2) in it.product(*[states[var1],states[var2]]):
-            PA = (data[:,key[var1]]==st_var1).sum()/dsize
-            if PA == 0 or PA==1:
-                continue
-            PB = (data[:,key[var2]]==st_var2).sum()/dsize
-            PAB= ((data[:,key[var1]]==st_var1)&(data[:,key[var2]]==st_var2)).sum()/dsize
-            file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )          
-
 n=10000
 density = {20:4.9, 40:4.1, 60:3.8, 80:3.7, 100:3.6, 120:3.5, 200:3.4, 300:3.3} #chosen to yield a real mean degree close to 3
 for n_nodes in [20,40,60,80,100,120,200]:
@@ -45,6 +30,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         states = stater(DAGt, min_states=2, max_states=4)
         X = generator(DAGt, states, n)
         #order = {node:int(node) for node in DAGt.nodes}
+        node_list = list(states)
         
         data[0,0] = n_nodes
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
