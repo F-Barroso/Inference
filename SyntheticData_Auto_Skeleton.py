@@ -122,9 +122,9 @@ for n_nodes in [20,40,60,80,100,120,200]:
     
         #Connected with NI
         ti = time.process_time()
-        weight_num_writer(X, states)
-        wn_var = np.array(weight_var_importer('weights_num.txt'))
-        wn_val = np.array(weight_val_importer('weights_num.txt'))
+        weight_num_writer(X, states,filename='weights_num_AS')
+        wn_var = np.array(weight_var_importer('weights_num_AS.txt'))
+        wn_val = np.array(weight_val_importer('weights_num_AS.txt'))
         
         unique_edges = np.unique(wn_var[:,:2],axis=0)
         unique_vals = np.zeros(len(unique_edges))
@@ -165,9 +165,9 @@ for n_nodes in [20,40,60,80,100,120,200]:
    
         #Knee with NI
         ti = time.process_time()
-        weight_num_writer(X, states)
-        wn_var = np.array(weight_var_importer('weights_num.txt'))
-        wn_val = np.array(weight_val_importer('weights_num.txt'))
+        weight_num_writer(X, states,filename='weights_num_AS')
+        wn_var = np.array(weight_var_importer('weights_num_AS.txt'))
+        wn_val = np.array(weight_val_importer('weights_num_AS.txt'))
             
         unique_edges = np.unique(wn_var[:,:2],axis=0)
         unique_vals = np.zeros(len(unique_edges))
