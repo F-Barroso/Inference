@@ -28,15 +28,15 @@ def binary_search(node_list, arr):
 def triangulation(data, node_list, edge_list, thres, states):
     key = {node_list[i]:i for i in range(len(node_list))}
 
-    DAG_w2 = nx.DiGraph()
-    DAG_w2.add_nodes_from(node_list)
-    DAG_w2.add_edges_from(edge_list)
+    DAG = nx.DiGraph()
+    DAG.add_nodes_from(node_list)
+    DAG.add_edges_from(edge_list)
     
-    for b in np.array(DAG_w2.nodes)[np.array(DAG_w2.in_degree)[:,1].astype("int")>1]:
-        parents = np.array(list(DAG_w2.in_edges(b)))[:,0]
+    for b in np.array(DAG.nodes)[np.array(DAG.in_degree)[:,1].astype("int")>1]:
+        parents = np.array(list(DAG.in_edges(b)))[:,0]
         
         for a in parents: #a-> b <-u (test a->b; b=node)
-            if (a,b) in DAG_w2.edges: #was it already removed?
+            if (a,b) in DAG.edges: #was it already removed?
                 
                 #Note: it.permutations(parents,2) can't be used in conjuction with the last break since that will cause the cycle to skip triangles for different a's.
                 for c in parents[parents!=a]:
@@ -53,31 +53,104 @@ def triangulation(data, node_list, edge_list, thres, states):
                                 survives=True
                                 break
                     if not survives:
-                        DAG_w2.remove_edge(a,b)
+                        DAG.remove_edge(a,b)
                         break                        
-    return DAG_w2
+    return DAG
 
+def triangulation_und(data, node_list, edge_list, thres, states):
+    key = {node_list[i]:i for i in range(len(node_list))}
+
+    G = nx.Graph()
+    G.add_nodes_from(node_list)
+    G.add_edges_from(edge_list)
+    
+    for b in np.array(G.nodes)[np.array(G.degree)[:,1].astype("int")>1]:
+        parents = np.array(list(G.edges(b)))[:,1]
+        
+        for a in parents: #a-- b --u (test a--b; b=node)
+            if (a,b) in G.edges: #was it already removed?
+                
+                #Note: it.permutations(parents,2) can't be used in conjuction with the last break since that will cause the cycle to skip triangles for different a's.
+                for c in parents[parents!=a]:
+                    #print(b,a,parents[parents!=a])
+                    survives=False
+                    
+                    for st_varB,st_varA,st_varC in it.product(*[states[b],states[a],states[c]]):
+                        PC = (data[:,key[c]]==st_varC).sum()
+                        PAC= ((data[:,key[a]]==st_varA)&(data[:,key[c]]==st_varC)).sum()
+                        PBC= ((data[:,key[b]]==st_varB)&(data[:,key[c]]==st_varC)).sum()
+                        PABC= ((data[:,key[b]]==st_varB)&(data[:,key[a]]==st_varA)&(data[:,key[c]]==st_varC)).sum()
+                        if (PAC!=0) and (PAC!=PC) and (np.abs(PABC*PC-PAC*PBC)/(PAC*(PC-PAC)) > thres): #conditioned to c a->b
+                            survives=True
+                            break
+                        if (PBC!=0) and (PBC!=PC) and (np.abs(PABC*PC-PAC*PBC)/(PBC*(PC-PBC)) > thres): #conditioned to c b->a
+                            survives=True
+                            break
+                    if not survives: #removes only if all states in both directions fail the threshold
+                        G.remove_edge(a,b)
+                        break                        
+    return G
+    
 def triangulation_fisher(data, node_list, edge_list, thres):
     '''Triangulation method tailored for fisher metric'''
     key = {node_list[i]:i for i in range(len(node_list))}
-    DAG_w2 = nx.DiGraph()
-    DAG_w2.add_nodes_from(node_list)
-    DAG_w2.add_edges_from(edge_list)
+    DAG = nx.DiGraph()
+    DAG.add_nodes_from(node_list)
+    DAG.add_edges_from(edge_list)
     
-    for b in np.array(DAG_w2.nodes)[np.array(DAG_w2.in_degree)[:,1].astype("int")>1]:
-        parents = np.array(list(DAG_w2.in_edges(b)))[:,0]
+    for b in np.array(DAG.nodes)[np.array(DAG.in_degree)[:,1].astype("int")>1]:
+        parents = np.array(list(DAG.in_edges(b)))[:,0]
         
         for a in parents: #a-> b <-u (test a->b; b=node)
-            if (a,b) in DAG_w2.in_edges: #was it already removed?
+            if (a,b) in DAG.in_edges: #was it already removed?
                 
                 #Note: it.permutations(parents,2) can't be used in conjuction with the last break since that will cause the cycle to skip triangles for different a's.
                 for c in parents[parents!=a]:
                     
                     if independence_tests.CITest.fisherz_test(data,key[a],key[b],[key[c]])[2] > thres: #does not survive
-                        DAG_w2.remove_edge(a,b)
+                        DAG.remove_edge(a,b)
                         break
                     
-    return DAG_w2
+    return DAG
+
+def triangulation_fisher_und(data, node_list, edge_list, thres):
+    '''Triangulation method tailored for fisher metric'''
+    key = {node_list[i]:i for i in range(len(node_list))}
+    G = nx.Graph()
+    G.add_nodes_from(node_list)
+    G.add_edges_from(edge_list)
+
+    for b in np.array(G.nodes)[np.array(G.degree)[:,1].astype("int")>1]:
+        parents = np.array(list(G.edges(b)))[:,1]
+
+        for a in parents: #a-- b --u (test a--b; b=node)
+            if (a,b) in G.edges: #was it already removed?
+                
+                #Note: it.permutations(parents,2) can't be used in conjuction with the last break since that will cause the cycle to skip triangles for different a's.
+                for c in parents[parents!=a]:
+                    
+                    if independence_tests.CITest.fisherz_test(data,key[a],key[b],[key[c]])[2] > thres: #does not survive
+                        G.remove_edge(a,b)
+                        break
+                    
+    return G
+
+def _loop(G, d):
+    assert G.shape[0] == G.shape[1]
+
+    pairs = [(x, y) for x, y in it.combinations(set(range(G.shape[0])), 2)]
+    less_d = 0
+    for i, j in pairs:
+        adj_i = set(np.argwhere(G[i] != 0).reshape(-1, ))
+        z = adj_i - {j}  # adj(C, i)\{j}
+        if len(z) < d:
+            less_d += 1
+        else:
+            break
+    if less_d == len(pairs):
+        return False
+    else:
+        return True
 
 def find_skeleton(data, alpha, ci_test, variant='original',
                   priori_knowledge=None, base_skeleton=None,
@@ -93,7 +166,7 @@ def find_skeleton(data, alpha, ci_test, variant='original',
         z_x = adj_x - {y}  # adj(X, G)\{Y}
         if len(z_x) >= d:
             # |adj(X, G)\{Y}| >= d
-            for sub_z in combinations(z_x, d):
+            for sub_z in itcombinations(z_x, d):
                 sub_z = list(sub_z)
                 _, _, p_value = ci_test(data, x, y, sub_z)
                 if p_value >= alpha:
@@ -116,11 +189,11 @@ def find_skeleton(data, alpha, ci_test, variant='original',
         return (x, y), K_x_y, sub_z
 
     if ci_test == 'fisherz':
-        ci_test = CITest.fisherz_test
+        ci_test = independence_tests.CITest.fisherz_test
     elif ci_test == 'g2':
-        ci_test = CITest.g2_test
+        ci_test = independence_tests.CITest.g2_test
     elif ci_test == 'chi2':
-        ci_test = CITest.chi2_test
+        ci_test = independence_tests.CITest.chi2_test
     elif callable(ci_test):
         ci_test = ci_test
     else:

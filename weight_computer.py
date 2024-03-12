@@ -9,14 +9,30 @@ def weight_num_writer(data, states, filename='weights_num'):
     file = open(filename+'.txt', 'w')
     dsize = len(data)
     for (var1,var2) in it.permutations(states.keys(),2):
-        #if order[var1]<order[var2]:
         for (st_var1,st_var2) in it.product(*[states[var1],states[var2]]):
             PA = (data[:,key[var1]]==st_var1).sum()/dsize
             if PA == 0 or PA==1:
                 continue
             PB = (data[:,key[var2]]==st_var2).sum()/dsize
             PAB= ((data[:,key[var1]]==st_var1)&(data[:,key[var2]]==st_var2)).sum()/dsize
-            file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )          
+            file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )
+
+def weight_num_writer_ord(data, states, order, filename='weights_num'):
+    '''Computes numerical weights and writes them in a txt file.'''
+    key = {list(states)[i]:i for i in range(len(states))}
+
+    file = open(filename+'.txt', 'w')
+    dsize = len(data)
+    for (var1,var2) in it.permutations(states.keys(),2):
+        if order[var1]<order[var2]:
+            for (st_var1,st_var2) in it.product(*[states[var1],states[var2]]):
+                PA = (data[:,key[var1]]==st_var1).sum()/dsize
+                if PA == 0 or PA==1:
+                    continue
+                PB = (data[:,key[var2]]==st_var2).sum()/dsize
+                PAB= ((data[:,key[var1]]==st_var1)&(data[:,key[var2]]==st_var2)).sum()/dsize
+                file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )          
+
 
 def weight_var_importer(file_name):
     '''Imports weight's var from txt file.'''
