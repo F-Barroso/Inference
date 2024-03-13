@@ -211,7 +211,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         data[0,28] = FN/len(Gt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
-        f = open("synthmeasuresDense_data.txt", "a+")
+        f = open("synthmeasuresAuto_Skeleton.txt", "a+")
         np.savetxt(f,data)
         f.close()
         del data
