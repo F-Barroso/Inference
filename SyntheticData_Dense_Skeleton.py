@@ -32,12 +32,11 @@ for n_nodes in [20,40,60,80,100,120,200]:
         
         states = stater(DAGt, min_states=2, max_states=4)
         X = generator(DAGt, states, n)
-        #order = {node:int(node) for node in DAGt.nodes}
         
         node_list = list(states)
 
         data[0,0] = n_nodes
-        data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
+        data[0,1] = np.mean((np.array(Gt.degree)[:,1]).astype("int"))
         
         print(i)
             
