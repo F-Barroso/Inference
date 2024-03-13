@@ -35,10 +35,11 @@ for n_nodes in [20,40,60,80,100,120,200]:
         X[:,0] = rd.normal(size=n) #noise
         for j in range(1,n_nodes):
             X[:,j] = np.sum(A[:j,j]*X[:,:j],axis=1) + rd.normal(size=n) #connections + noise
+            
+        node_list = list(DAGt.nodes)
         
         data[0,0] = n_nodes
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
-        node_list = range(n_nodes)
 
         print(turn)
                 
@@ -57,7 +58,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
     
         #Connected with Fisher
         ti = time.process_time()
-        fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(node_list,2)]
+        key = {node_list[i]:i for i in range(len(node_list))}
+        fish_vals = [independence_tests.CITest.fisherz_test(X,key[x],key[y],[])[2] for x,y in it.permutations(node_list,2)]
         fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
     
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x],np.array(fish_vals)[x]))(np.argsort(fish_vals))
@@ -95,7 +97,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
         
         #Knee with Fisher
         ti = time.process_time()
-        fish_vals = [independence_tests.CITest.fisherz_test(X,x,y,[])[2] for x,y in it.permutations(node_list,2)]
+        key = {node_list[i]:i for i in range(len(node_list))}
+        fish_vals = [independence_tests.CITest.fisherz_test(X,key[x],key[y],[])[2] for x,y in it.permutations(node_list,2)]
         fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
 
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
@@ -162,7 +165,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
             
         ##Threshold in first step
-        m=binary_search(list(states), unique_edges)
+        m=binary_search(node_list, unique_edges)
         thres = unique_vals[m]
         data[0,18] = m
         data[0,19] = thres
@@ -170,7 +173,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         
         ti = time.process_time()
         ##Second Step
-        DAG_w2 = triangulation(X, list(states), unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(Y, node_list, unique_edges[m:], thres, states)
         data[0,32] = time.process_time() - ti #time in seconds
         
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
@@ -220,7 +223,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation(X, list(states), unique_edges[m:], thres, states)
+        DAG_w2 = triangulation(Y, node_list, unique_edges[m:], thres, states)
         data[0,33] = time.process_time() - ti #time in seconds
 
         FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
