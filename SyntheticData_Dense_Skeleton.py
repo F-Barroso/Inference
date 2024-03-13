@@ -18,7 +18,7 @@ from castle.algorithms import PC
 n=10000
 for n_nodes in [20,40,60,80,100,120,200]:
     
-    for i in range(10):
+    for turn in range(10):
         data = np.zeros([1,34])
     	
         density = 3 #mean degree
@@ -32,14 +32,13 @@ for n_nodes in [20,40,60,80,100,120,200]:
         
         states = stater(DAGt, min_states=2, max_states=4)
         X = generator(DAGt, states, n)
-        #order = {node:int(node) for node in DAGt.nodes}
         
         node_list = list(states)
 
         data[0,0] = n_nodes
-        data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
+        data[0,1] = np.mean((np.array(Gt.degree)[:,1]).astype("int"))
         
-        print(i)
+        print(turn)
             
         true_skeleton=nx.adjacency_matrix(Gt,nodelist=list(states)).toarray()
         for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
@@ -216,7 +215,7 @@ for n_nodes in [20,40,60,80,100,120,200]:
         data[0,28] = FN/len(Gt.edges) #FNR = FN/P
         data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
-        f = open("synthmeasuresDense_S.txt", "a+")
+        f = open("synthmeasuresDenseS_data.txt", "a+")
         np.savetxt(f,data)
         f.close()
         del data
