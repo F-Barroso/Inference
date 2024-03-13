@@ -32,8 +32,8 @@ for n_nodes in [20,40,60,80,100,120,200]:
         node_list = list(states)
 
         data[0,0] = n_nodes
-        data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
-        
+        data[0,1] = np.mean((np.array(Gt.degree)[:,1]).astype("int"))
+
         print(i)
             
         true_skeleton=nx.adjacency_matrix(Gt,nodelist=list(states)).toarray()
