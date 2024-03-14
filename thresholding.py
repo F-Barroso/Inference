@@ -63,8 +63,10 @@ def triangulation_und(data, node_list, edge_list, thres, states):
     G = nx.Graph()
     G.add_nodes_from(node_list)
     G.add_edges_from(edge_list)
-    
-    for b in np.array(G.nodes)[np.array(G.degree)[:,1].astype("int")>1]:
+
+    #for b in np.array(G.nodes)[np.array(G.degree)[:,1].astype("int")>1]: #might be problematic 
+    for b in G.nodes:
+        if G.degree(b)==0: continue
         parents = np.array(list(G.edges(b)))[:,1]
         
         for a in parents: #a-- b --u (test a--b; b=node)
@@ -120,7 +122,9 @@ def triangulation_fisher_und(data, node_list, edge_list, thres):
     G.add_nodes_from(node_list)
     G.add_edges_from(edge_list)
 
-    for b in np.array(G.nodes)[np.array(G.degree)[:,1].astype("int")>1]:
+    #for b in np.array(G.nodes)[np.array(G.degree)[:,1].astype("int")>1]: #might be problematic 
+    for b in G.nodes:
+        if G.degree(b)==0: continue
         parents = np.array(list(G.edges(b)))[:,1]
 
         for a in parents: #a-- b --u (test a--b; b=node)
