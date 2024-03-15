@@ -7,7 +7,6 @@ from scipy.stats import norm
 
 import time
 
-#from controlled_zeros import *
 from data_generation import *
 from thresholding import *
 from weight_computer import *
@@ -17,7 +16,7 @@ from castle.metrics import MetricsDAG
 from castle.algorithms import PC
 
 n=10000
-for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
+for n_nodes in [20,40,60,80,100,120,200]:
     
     for turn in range(2):
         data = np.zeros([1,46])
@@ -42,25 +41,29 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
         data[0,1] = np.mean((np.array(DAGt.in_degree)[:,1]).astype("int"))
 
         print(turn)
-                
+
+        true_skeleton = A
+        
         #PC Algorithm
         ti = time.process_time()
-        pc = PC(alpha=0.05)
-        pc.learn(X)
+        skeleton = find_skeleton(X, 0.05, "fisherz")[0]
         data[0,2] = time.process_time() - ti #time in seconds
-        FN = int(np.sum((A-pc.causal_matrix)>0)) #False Negatives
-        FP = int(np.sum((A-pc.causal_matrix)<0)) #False Positives
-        TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*n_nodes - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,3] = FP/(n_nodes*n_nodes - len(DAGt.edges)) #FPR = FP/N
-        data[0,4] = FN/len(DAGt.edges) #FNR = FN/P
+        for k,j in it.product(range(n_nodes),repeat=2): #removes bottom half of matrix
+            if k>=j: skeleton[k,j]=0
+        
+        FN = int(np.sum((true_skeleton-skeleton)>0)) #False Negatives
+        FP = int(np.sum((true_skeleton-skeleton)<0)) #False Positives
+        TP = len(Gt.edges) - FN #True Positives = P - FN
+        TN = (n_nodes*(n_nodes-1)/2 - len(Gt.edges))-FP #True Negatives = N-FP
+        data[0,3] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
+        data[0,4] = FN/len(Gt.edges) #FNR = FN/P
         data[0,5] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
     
         #Connected with Fisher
         ti = time.process_time()
         key = {node_list[i]:i for i in range(len(node_list))}
-        fish_vals = [independence_tests.CITest.fisherz_test(X,key[x],key[y],[])[2] for x,y in it.permutations(node_list,2)]
-        fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
+        fish_vals = [independence_tests.CITest.fisherz_test(X,key[x],key[y],[])[2] for x,y in it.combinations(node_list,2)]
+        fish_vars = [(x,y) for x,y in it.combinations(node_list,2)]
     
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x],np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges,axis=0), np.flip(unique_vals,axis=0)
@@ -74,32 +77,22 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
         
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation_fisher(X, node_list, unique_edges[m:], thres)
+        DAG_w2 = triangulation_fisher_und(X, node_list, unique_edges[m:], thres)
         data[0,30] = time.process_time() - ti #time in seconds
         
-        FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
-        FP = len(DAG_w2.edges-DAGt.edges) #False Positives
-        TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*n_nodes - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,9] = FP/(n_nodes*n_nodes - len(DAGt.edges)) #FPR = FP/N
-        data[0,10] = FN/len(DAGt.edges) #FNR = FN/P
-        data[0,11] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
-
-        #Skeleton?
-        G_w2 = nx.to_undirected(DAG_w2)
-        FN = len(Gt.edges-G_w2.edges) #False Negatives
-        FP = len(G_w2.edges-Gt.edges) #False Positives
+        FN = len(Gt.edges-DAG_w2.edges) #False Negatives
+        FP = len(DAG_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*(n_nodes-1)/2 - len(Gt.edges)) - FP #True Negatives = N - FP
-        data[0,34] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
-        data[0,35] = FN/len(Gt.edges) #FNR = FN/P
-        data[0,36] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+        TN = (int(n_nodes*(n_nodes-1)/2) - len(Gt.edges)) - FP #True Negatives = N - FP
+        data[0,9] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
+        data[0,10] = FN/len(Gt.edges) #FNR = FN/P
+        data[0,11] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
         #Knee with Fisher
         ti = time.process_time()
         key = {node_list[i]:i for i in range(len(node_list))}
-        fish_vals = [independence_tests.CITest.fisherz_test(X,key[x],key[y],[])[2] for x,y in it.permutations(node_list,2)]
-        fish_vars = [(x,y) for x,y in it.permutations(node_list,2)]
+        fish_vals = [independence_tests.CITest.fisherz_test(X,key[x],key[y],[])[2] for x,y in it.combinations(node_list,2)]
+        fish_vars = [(x,y) for x,y in it.combinations(node_list,2)]
 
         unique_edges, unique_vals = (lambda x: (np.array(fish_vars)[x], np.array(fish_vals)[x]))(np.argsort(fish_vals))
         unique_edges, unique_vals = np.flip(unique_edges,axis=0), np.flip(unique_vals,axis=0)
@@ -119,25 +112,16 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
     
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation_fisher(X, node_list, unique_edges[m:], thres)
+        DAG_w2 = triangulation_fisher_und(X, node_list, unique_edges[m:], thres)
         data[0,31] = time.process_time() - ti #time in seconds
         
-        FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
-        FP = len(DAG_w2.edges-DAGt.edges) #False Positives
-        TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*n_nodes - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,15] = FP/(n_nodes*n_nodes - len(DAGt.edges)) #FPR = FP/N
-        data[0,16] = FN/len(DAGt.edges) #FNR = FN/P
-        data[0,17] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
-
-        G_w2 = nx.to_undirected(DAG_w2)
-        FN = len(Gt.edges-G_w2.edges) #False Negatives
-        FP = len(G_w2.edges-Gt.edges) #False Positives
+        FN = len(Gt.edges-DAG_w2.edges) #False Negatives
+        FP = len(DAG_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*(n_nodes-1)/2 - len(Gt.edges)) - FP #True Negatives = N - FP
-        data[0,37] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
-        data[0,38] = FN/len(Gt.edges) #FNR = FN/P
-        data[0,39] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+        TN = (int(n_nodes*(n_nodes-1)/2) - len(Gt.edges)) - FP #True Negatives = N - FP
+        data[0,15] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
+        data[0,16] = FN/len(Gt.edges) #FNR = FN/P
+        data[0,17] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
 
         #Create states by quantiles:
         n_quant = 4
@@ -151,17 +135,25 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
         
         #Connected with NI
         ti = time.process_time()
-        weight_num_writer(Y, states,filename='weights_num_CN')
-        wn_var = np.array(weight_var_importer('weights_num_CN.txt'))
-        wn_val = np.array(weight_val_importer('weights_num_CN.txt'))
+        weight_num_writer(Y, states,filename='weights_num_CS')
+        wn_var = np.array(weight_var_importer('weights_num_CS.txt'))
+        wn_val = np.array(weight_val_importer('weights_num_CS.txt'))
         
         unique_edges = np.unique(wn_var[:,:2],axis=0)
         unique_vals = np.zeros(len(unique_edges))
-        for j in range(len(unique_edges)):
+        for j in range(len(unique_edges)): #for a given direction, keep the biggest state
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
             
         unique_vals=np.abs(unique_vals)
+        for j in range(len(unique_edges)): #keep the biggest direction
+            pair = unique_edges[j]
+            anti_j = np.where(np.all(unique_edges==np.flip(pair),axis=1))[0][0]
+        
+            if unique_vals[j] >= unique_vals[anti_j]:
+                
+                unique_vals[anti_j] = -np.infty
+        unique_vals, unique_edges = (lambda x: (np.delete(unique_vals,x), np.delete(unique_edges,x,axis=0)))(np.where(unique_vals<0))
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
             
         ##Threshold in first step
@@ -173,25 +165,16 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
         
         ti = time.process_time()
         ##Second Step
-        DAG_w2 = triangulation(Y, node_list, unique_edges[m:], thres, states)
+        DAG_w2 = triangulation_und(Y, node_list, unique_edges[m:], thres, states)
         data[0,32] = time.process_time() - ti #time in seconds
         
-        FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
-        FP = len(DAG_w2.edges-DAGt.edges) #False Positives
-        TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*n_nodes - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,21] = FP/(n_nodes*n_nodes - len(DAGt.edges)) #FPR = FP/N
-        data[0,22] = FN/len(DAGt.edges) #FNR = FN/P
-        data[0,23] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
-
-        G_w2 = nx.to_undirected(DAG_w2)
-        FN = len(Gt.edges-G_w2.edges) #False Negatives
-        FP = len(G_w2.edges-Gt.edges) #False Positives
+        FN = len(Gt.edges-DAG_w2.edges) #False Negatives
+        FP = len(DAG_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
         TN = (n_nodes*(n_nodes-1)/2 - len(Gt.edges)) - FP #True Negatives = N - FP
-        data[0,40] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
-        data[0,41] = FN/len(Gt.edges) #FNR = FN/P
-        data[0,42] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+        data[0,21] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
+        data[0,22] = FN/len(Gt.edges) #FNR = FN/P
+        data[0,23] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
     
         #Knee with NI
         ti = time.process_time()
@@ -201,11 +184,19 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
             
         unique_edges = np.unique(wn_var[:,:2],axis=0)
         unique_vals = np.zeros(len(unique_edges))
-        for j in range(len(unique_edges)):
+        for j in range(len(unique_edges)): #for a given direction, keep the biggest state
             pair = unique_edges[j]
             unique_vals[j] = (np.max( np.abs( wn_val[np.all(wn_var[:,:2]==pair,axis=1)]) ) )
             
         unique_vals=np.abs(unique_vals)
+        for j in range(len(unique_edges)): #keep the biggest direction
+            pair = unique_edges[j]
+            anti_j = np.where(np.all(unique_edges==np.flip(pair),axis=1))[0][0]
+        
+            if unique_vals[j] >= unique_vals[anti_j]:
+                
+                unique_vals[anti_j] = -np.infty
+        unique_vals, unique_edges = (lambda x: (np.delete(unique_vals,x), np.delete(unique_edges,x,axis=0)))(np.where(unique_vals<0))
         unique_edges, unique_vals = (lambda x: (unique_edges[x], unique_vals[x]))(np.argsort(unique_vals))
         
         ##Threshold in first step
@@ -223,27 +214,18 @@ for n_nodes in [120,200]: #[20,40,60,80,100,120,200]:
         
         ti = time.process_time()
     	##Second Step
-        DAG_w2 = triangulation(Y, node_list, unique_edges[m:], thres, states)
+        DAG_w2 = triangulation_und(Y, node_list, unique_edges[m:], thres, states)
         data[0,33] = time.process_time() - ti #time in seconds
 
-        FN = len(DAGt.edges-DAG_w2.edges) #False Negatives
-        FP = len(DAG_w2.edges-DAGt.edges) #False Positives
-        TP = len(DAGt.edges) - FN #True Positives = P - FN
-        TN = (n_nodes*n_nodes - len(DAGt.edges)) - FP #True Negatives = N - FP
-        data[0,27] = FP/(n_nodes*n_nodes - len(DAGt.edges)) #FPR = FP/N
-        data[0,28] = FN/len(DAGt.edges) #FNR = FN/P
-        data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
-
-        G_w2 = nx.to_undirected(DAG_w2)
-        FN = len(Gt.edges-G_w2.edges) #False Negatives
-        FP = len(G_w2.edges-Gt.edges) #False Positives
+        FN = len(Gt.edges-DAG_w2.edges) #False Negatives
+        FP = len(DAG_w2.edges-Gt.edges) #False Positives
         TP = len(Gt.edges) - FN #True Positives = P - FN
         TN = (n_nodes*(n_nodes-1)/2 - len(Gt.edges)) - FP #True Negatives = N - FP
-        data[0,43] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
-        data[0,44] = FN/len(Gt.edges) #FNR = FN/P
-        data[0,45] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
+        data[0,27] = FP/(n_nodes*(n_nodes-1)/2 - len(Gt.edges)) #FPR = FP/N
+        data[0,28] = FN/len(Gt.edges) #FNR = FN/P
+        data[0,29] = (TP*TN - FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN)) #MCC
         
-        f = open("synthmeasuresContinuous_NOrder.txt", "a+")
+        f = open("synthmeasuresContinuous_Skeleton.txt", "a+")
         np.savetxt(f,data)
         f.close()
         del data
