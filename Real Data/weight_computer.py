@@ -18,7 +18,7 @@ def weight_num_writer(data, states, filename='weights_num'):
             file.write( str(var1)+";"+str(var2)+";"+str(st_var1)+";"+str(st_var2) + ":" + str((PAB - PA*PB)/(PA*(1-PA)))+"\n" )
 
 def weight_num_writer_ord(data, states, order, filename='weights_num'):
-    '''Computes numerical weights that satisfy an ordering of the nodes, and writes them in a txt file.'''
+    '''Computes numerical weights and writes them in a txt file.'''
     key = {list(states)[i]:i for i in range(len(states))}
 
     file = open(filename+'.txt', 'w')
